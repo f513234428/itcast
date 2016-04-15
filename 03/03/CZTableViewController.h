@@ -1,5 +1,5 @@
 //
-//  ViewController.h
+//  CZTableViewController.h
 //  03
 //
 //  Created by Mac on 16/4/15.
@@ -8,8 +8,6 @@
 
 #import <UIKit/UIKit.h>
 
-@interface ViewController : UIViewController
-
+@interface CZTableViewController : UITableViewController
 
 @end
-
