@@ -3,74 +3,71 @@
 #import "CZTableViewController.h"
 #import "AFNetworking.h"
 #import "UIImageView+WebCache.h"
+#import "CZicon.h"
+#import "CZCellTableViewCell.h"
 
 @interface CZTableViewController ()
-
+@property (nonatomic, strong) NSMutableArray *apps;
 @end
 
 @implementation CZTableViewController
 
 - (void)viewDidLoad {
-    [super viewDidLoad];
+    [super viewDidLoad ];
+    [self setupRefreshControl];
 
 }
 
--(void)download{
-    //创建请求
-    NSURLRequest * request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"http://192.168.42.8/videos.json"]];
-    [[[AFHTTPSessionManager manager] downloadTaskWithRequest:request progress:^(NSProgress * _Nonnull downloadProgress) {
-        NSLog(@"下载进度为==%f",downloadProgress.fractionCompleted);
-    } destination:^NSURL * _Nonnull(NSURL * _Nonnull targetPath, NSURLResponse * _Nonnull response) {
-
-        NSURL *fileURL = [[NSFileManager defaultManager]URLForDirectory:NSDocumentDirectory inDomain:NSUserDomainMask appropriateForURL:nil create:NO error:nil];
-        return [fileURL URLByAppendingPathComponent:[response suggestedFilename]];
-
-    } completionHandler:^(NSURLResponse * _Nonnull response, NSURL * _Nullable filePath, NSError * _Nullable error) {
-        NSLog(@"filePath---%@",filePath);
+- (void)setupRefreshControl{
+    // 创建下拉刷新控件
+    UIRefreshControl *control = [[UIRefreshControl alloc] init];
+    // 添加时间
+    [control addTarget:self action:@selector(loadData) forControlEvents:UIControlEventValueChanged];
+    // 设置菊花颜色
+    control.tintColor = [UIColor colorWithWhite:0.702 alpha:1.000];
+    // 设置文字
+    control.attributedTitle = [[NSAttributedString alloc] initWithString:@"正在拼命刷新中..." attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:18],NSForegroundColorAttributeName:[UIColor colorWithRed:1.000 green:0.502 blue:0.000 alpha:1.000]}];
+    // 将刷新控件赋值给tableViewController
+    self.refreshControl = control;
+}
+-(void)loadData
+{
+    [[[AFHTTPSessionManager manager] GET:@"http://192.168.42.8/videos.json" parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        NSLog(@"%@",responseObject);
+        //遍历json数据,给模型赋值
+        for (NSDictionary *dic in responseObject)
+        {
+            CZicon *icon = [CZicon iconWithDict:dic];
+            [self.apps addObject:icon];
+        }
+        [self.tableView reloadData];
+        [self.refreshControl endRefreshing];
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        NSLog(@"%@", error);
+        [self.refreshControl endRefreshing];
     }] resume];
 }
-
-#pragma mark - Table view data source
-
-- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-#warning Incomplete implementation, return the number of sections
-    return 0;
+//每组有多少行
+-(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
+    return self.apps.count;
 }
 
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-#warning Incomplete implementation, return the number of rows
-    return 0;
-}
-
-/*
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:<#@"reuseIdentifier"#> forIndexPath:indexPath];
-    
-    // Configure the cell...
-    
+-(UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
+    //获得cell
+    CZCellTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"myCell" forIndexPath:indexPath];
+    //根据indexpath获得模型
+    CZicon *app = self.apps[indexPath.row];
+    cell.titleLable.text = app.desc;
+    cell.nameLable.text = app.name;
+    cell.teacherLable.text = app.teacher;
+    [cell.iconView sd_setImageWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://192.168.42.8/%@",app.imageURL]]];
     return cell;
 }
-*/
 
-/*
-// Override to support conditional editing of the table view.
-- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
-    // Return NO if you do not want the specified item to be editable.
-    return YES;
+-(NSMutableArray *)apps{
+    if (_apps == nil) {
+        _apps = [NSMutableArray array];
+    }
+    return _apps;
 }
-*/
-
-/*
-// Override to support editing the table view.
-- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (editingStyle == UITableViewCellEditingStyleDelete) {
-        // Delete the row from the data source
-        [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
-    } else if (editingStyle == UITableViewCellEditingStyleInsert) {
-        // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-    }   
-}
-*/
-
-
 @end

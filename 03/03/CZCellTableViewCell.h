@@ -10,12 +10,9 @@
 
 @interface CZCellTableViewCell : UITableViewCell
 @property (nonatomic, weak) IBOutlet UIImageView *iconView;
-/**
- *  应用名称
- */
-@property (nonatomic, weak) IBOutlet UILabel *nameLabel;
-/**
- *  下载数量
- */
-@property (nonatomic, weak) IBOutlet UILabel *downloadLabel;
+
+@property (nonatomic, weak) IBOutlet UILabel *titleLable;
+
+@property (nonatomic, weak) IBOutlet UILabel *nameLable;
+@property (nonatomic, weak) IBOutlet UILabel *teacherLable;
 @end
